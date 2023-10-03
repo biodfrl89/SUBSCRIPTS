@@ -62,20 +62,37 @@ df_final <- data.frame("Match" = numeric(),
            "Split" = numeric(),
            "Frameshift" = numeric())
 
-
 for (COUNT in 1:nrow(df)) {
-# Split last column into individual elements
-vec_all_sections <- strsplit(df$Vulgar_notation[COUNT], " ")[[1]]
+  # Split last column into individual elements
+  vec_all_sections <- strsplit(df$Vulgar_notation[COUNT], " ")[[1]]
 
-# Get only the elements multiple of 3
-vec_sections <- vec_all_sections[seq(1, length(vec_all_sections), 3)]
+  # Get only the elements multiple of 3
+  vec_sections <- vec_all_sections[seq(1, length(vec_all_sections), 3)]
 
-# Convert to factor with levels predefined
-fac_sections <- factor(vec_sections, levels = (c("M", "C", "G", "N", "5" ,"I", "3" , "S", "F")), ordered = TRUE)
+  # Convert to factor with levels predefined
+  fac_sections <- factor(vec_sections, levels = (c("M", "C", "G", "N", "5" ,"I", "3" , "S", "F")), ordered = TRUE)
 
-# Deposit counts of all categories in the final df
-df_final[COUNT,] <- unname(table(fac_sections))
+  # Deposit counts of all categories in the final df
+  df_final[COUNT,] <- unname(table(fac_sections))
 }
 
-write.table(cbind(df[,1:9], df_final), 
+# Get path of the file
+in_path <- opt$file
+
+# Separate by slash, and get the last element, the filename
+out_filename_old <- strsplit(in_path, "/")[[1]][5]
+
+# Separate by underscore, remove first element and replace it with "table"
+out_filename_new <- c("table", strsplit(outname_old, "_")[[1]][-1])
+
+# Collapse the previous elements with underscore
+out_filename_new <- paste(out_filename_new, collapse = "_")
+
+# From the original path, split, remove last element and replace it with the new filename. Collapse with slash
+out_path <- paste(c(strsplit(in_path, "/")[[1]][-5], out_filename_new), collapse = "/" )
+
+# Write the final dataframe in the created destination
+write.table(cbind(df[,1:9], out_path), 
             file = paste0("table_", opt$file), quote = FALSE, sep = "\t", row.names = FALSE)
+
+
