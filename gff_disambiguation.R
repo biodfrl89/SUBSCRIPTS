@@ -56,7 +56,9 @@ library(utils)
 
 # CREATE OUTPUT
 filename <- opt$file
-outname <- paste0("reduced_", filename)
+out_filename <- paste0("reduced_", strsplit(filename, "/")[[1]][5])
+out_path <- paste0(strsplit(filename, "/")[[1]][1:4], collapse = "/")
+out_path_complete <- paste(c(out_path, out_filename), collapse = "/")
 
 # Load GFF file using the name provided in the file option
 print("Reading GFF and transforming to Granges.")
@@ -73,4 +75,4 @@ rtracklayer::export.gff(gff_reduced, paste("reduced", opt$file, sep = "_"))
 
 # Load and resave to eliminate first rows
 readr::write_lines(readr::read_lines(outname, skip = 3),
-                   paste("reduced", opt$file, sep = "_"))
+                   out_path_complete)
