@@ -71,8 +71,8 @@ gff_reduced <- GenomicRanges::reduce(gff_file )
 
 # Saving the reduced GFF
 print("Saving reduced GFF.")
-rtracklayer::export.gff(gff_reduced, paste("reduced", opt$file, sep = "_"))
+rtracklayer::export.gff(gff_reduced, out_path_complete)
 
 # Load and resave to eliminate first rows
-readr::write_lines(readr::read_lines(outname, skip = 3),
+readr::write_lines(readr::read_lines(out_path_complete, skip = 3),
                    out_path_complete)
