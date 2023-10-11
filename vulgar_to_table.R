@@ -83,7 +83,7 @@ in_path <- opt$file
 out_filename_old <- strsplit(in_path, "/")[[1]][5]
 
 # Separate by underscore, remove first element and replace it with "table"
-out_filename_new <- c("table", strsplit(outname_old, "_")[[1]][-1])
+out_filename_new <- c("table", strsplit(out_filename_old, "_")[[1]][-1])
 
 # Collapse the previous elements with underscore
 out_filename_new <- paste(out_filename_new, collapse = "_")
@@ -92,7 +92,7 @@ out_filename_new <- paste(out_filename_new, collapse = "_")
 out_path <- paste(c(strsplit(in_path, "/")[[1]][-5], out_filename_new), collapse = "/" )
 
 # Write the final dataframe in the created destination
-write.table(cbind(df[,1:9], out_path), 
-            file = paste0("table_", opt$file), quote = FALSE, sep = "\t", row.names = FALSE)
+write.table(cbind(df[,1:9], df_final), 
+            file = out_path , quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
 
 
