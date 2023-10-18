@@ -38,12 +38,6 @@ opt_list = list(make_option(opt_str = c("-q", "--query"),
                             type = "character", 
                             default = NULL, 
                             help = "Exonerate filtered file with only genes", 
-                            metavar = "[FILENAME]"),
-                make_option(opt_str = c("-o", "--output"), 
-                            action="store",
-                            type = "character", 
-                            default = NULL, 
-                            help = "Output file", 
                             metavar = "[FILENAME]"))
 
 # Make the parser
@@ -64,11 +58,6 @@ if (is.null(opt$query)) {
 }
 
 if (is.null(opt$subject)) {
-  print_help(opt_parser)
-  stop("A subject file must be submitted", call.=FALSE)
-}
-
-if (is.null(opt$output)) {
   print_help(opt_parser)
   stop("A subject file must be submitted", call.=FALSE)
 }
@@ -134,6 +123,9 @@ for (i in 1:length(reduced_exonerate_gene_anot)) {
 # Add the created names to the reduced gene anotation object
 reduced_exonerate_gene_anot$ID <- ighv_genes_detected
 
+# Save as gff3
+rtracklayer::export.gff3(reduced_exonerate_gene_anot, "gene_prediction.gff")
+
 # ADD ID IN THE SUBJECT OBJECT (EXON) -------------------------------------
 
 # Begin empty ID column of metadata
@@ -159,4 +151,4 @@ for (i in temp_df$subjectHits) {
 reduced_exonerate_exon_anot[is.na(reduced_exonerate_exon_anot$ID)]$ID <- "Sequence"
 
 # Save as gff3
-rtracklayer::export.gff3(reduced_exonerate_exon_anot, con = opt$output)
+rtracklayer::export.gff3(reduced_exonerate_exon_anot, con = "exon_prediction.gff")
