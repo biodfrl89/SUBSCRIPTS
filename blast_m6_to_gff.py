@@ -32,10 +32,5 @@ with open(file) as filehandler: #Abrir archivo
             else: #Sino
                 new_line[4], new_line[3] = new_line[3], new_line[4] #Cambiar de posición los elementos de lista
                 new_line[6] = "-" #Cambiar sexto elemento a -
-            df_list = pandas.DataFrame.from_dict({"seqid": [new_line[0]], "source": [new_line[1]], "type": [new_line[2]], "start": [new_line[3]], "end": [new_line[4]], \
-                "score": [new_line[5]], "strand": [new_line[6]], "phase": [new_line[7]], "attributes": [new_line[8]] } ) #Crea un df de un dicc, a partir de new line y asignando nombres de columnas respectivos.
-            df = pandas.concat([df, df_list]) #Unir df que tienen los mismo nombres de columnas
+            df.loc[len(df.index)] = [new_line[0], new_line[1], new_line[2], new_line[3], new_line[4], new_line[5], new_line[6], new_line[7], new_line[8]]
 df.to_csv(outname , sep = "\t", header = False,  index = False) #Guardar df, por tabs, sin indice ni encabezado.
-
-
-#output = open('%s' % outname, "a")
