@@ -4,7 +4,6 @@
 # Author: David Felipe Rendón Luna 
 # Date: September-2023
 
-
 # CHECK LIBRARIES AND ARGUMENTS -------------------------------------------
 
 # Check for optparse library to load arguments from command line
@@ -32,22 +31,53 @@ opt_list = list(make_option(opt_str = c("-q", "--query"),
                             action="store",
                             type = "character", 
                             default = NULL, 
-                            help = "Exonerate filtered file ", 
+                            help = "Exonerate filtered file with only exons", 
                             metavar = "[FILENAME]"),
                 make_option(opt_str = c("-s", "--subject"), 
                             action="store",
                             type = "character", 
                             default = NULL, 
-                            help = "", 
+                            help = "Exonerate filtered file with only genes", 
+                            metavar = "[FILENAME]"),
+                make_option(opt_str = c("-o", "--output"), 
+                            action="store",
+                            type = "character", 
+                            default = NULL, 
+                            help = "Output file", 
                             metavar = "[FILENAME]"))
 
+# Make the parser
+opt_parser = OptionParser(option_list = opt_list)
 
+# Load the arguments in the parser into an object
+opt = parse_args(opt_parser)
+
+# Check for arguments -----------------------------------------------------
+if (length(opt) == 1) {
+  print_help(opt_parser)
+  stop("No arguments submitted")
+}
+
+if (is.null(opt$query)) {
+  print_help(opt_parser)
+  stop("A query file must be submitted", call.=FALSE)
+}
+
+if (is.null(opt$subject)) {
+  print_help(opt_parser)
+  stop("A subject file must be submitted", call.=FALSE)
+}
+
+if (is.null(opt$output)) {
+  print_help(opt_parser)
+  stop("A subject file must be submitted", call.=FALSE)
+}
 
 # PREPARE QUERY AND SUBJECT -----------------------------------------------
 
-# Import BED file of manual anotation
+# Import genes
 print("Reading gene annotation by exonerate.")
-exonerate_gene_anot <- rtracklayer::import("./DATA/Arja_exonerate_gene_protein.gff", format = "GFF")
+exonerate_gene_anot <- rtracklayer::import(opt$subject, format = "GFF")
 
 # Make ranges reduction
 reduced_exonerate_gene_anot <- GenomicRanges::reduce(exonerate_gene_anot)
@@ -58,13 +88,12 @@ reduced_exonerate_gene_anot <- GenomicRanges::reduce(exonerate_gene_anot)
 # Substitute each element with only the element code
 #manual_anotation@elementMetadata@listData$name <- gene_names 
 
-# Import reduced GFF file
+# Import exons
 print("Reading exon annotation by exonerate.")
-exonerate_exon_anot <- rtracklayer::import("./DATA/Arja_exonerate_exon_protein.gff", format = "GFF")
+exonerate_exon_anot <- rtracklayer::import(opt$query, format = "GFF")
 
 # Make ranges reduction
 reduced_exonerate_exon_anot <- GenomicRanges::reduce(exonerate_exon_anot)
-
 
 # MAKE OVERLAPS AND FIND INDEX OF TWO OR MORE -----------------------------
 
@@ -78,10 +107,10 @@ overlaps_table <- table(overlaps@from)
 overlaps_two_more <- as.numeric(names(overlaps_table[overlaps_table >= 2]))
 
 # Use names to filter the desired overlaps
-overlaps[overlaps_two_more]
+overlaps_filtered <- overlaps[overlaps_two_more]
 
 # Convert Granges to Dataframe
-df_overlaps <- as.data.frame(overlaps)
+df_overlaps <- as.data.frame(overlaps_filtered)
 
 # Find the records of the overlap dataframe which subject having two or more overlaps with query
 df_overlaps_two <- df_overlaps[df_overlaps$queryHits %in% overlaps_two_more,]
@@ -94,17 +123,16 @@ p = 1
 ighv_genes_detected <- c()
 for (i in 1:length(reduced_exonerate_gene_anot)) {
   if (i %in% unique(df_overlaps_two$queryHits)) {
-    ighv_genes_detected <- c(ighv_genes_detected, paste0("Arja_IGHV_gene_", g))
+    ighv_genes_detected <- c(ighv_genes_detected, paste0("IGHV_gene_", g))
     g = g + 1
   } else {
-    ighv_genes_detected <- c(ighv_genes_detected, paste0("Arja_IGHV_pseudogene_", p))
+    ighv_genes_detected <- c(ighv_genes_detected, paste0("IGHV_pseudogene_", p))
     p = p + 1
   }
 }
 
 # Add the created names to the reduced gene anotation object
 reduced_exonerate_gene_anot$ID <- ighv_genes_detected
-
 
 # ADD ID IN THE SUBJECT OBJECT (EXON) -------------------------------------
 
@@ -118,7 +146,7 @@ renamed_exons_numbers <- dplyr::dense_rank(df_overlaps_two$queryHits)
 temp_df <- df_overlaps_two["subjectHits"]
 
 # Paste
-temp_df$renamed <- paste0("Arja_IGHV_exon_", renamed_exons_numbers)
+temp_df$renamed <- paste0("IGHV_exon_", renamed_exons_numbers)
 
 # Add the corresponding name of exon following the index of subjectHits
 cont = 1
@@ -129,3 +157,6 @@ for (i in temp_df$subjectHits) {
 
 # Any remaining with NA is renamed to Sequence
 reduced_exonerate_exon_anot[is.na(reduced_exonerate_exon_anot$ID)]$ID <- "Sequence"
+
+# Save as gff3
+rtracklayer::export.gff3(reduced_exonerate_exon_anot, con = opt$output)
