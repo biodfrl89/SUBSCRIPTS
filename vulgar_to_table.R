@@ -41,8 +41,6 @@ if (is.null(opt$file)) {
   stop("A file must be submitted", call.=FALSE)
 }
 
-
-
 # SCRIPT
 library(utils)
 
