@@ -64,7 +64,6 @@ out_path_complete <- paste(c(out_path, out_filename), collapse = "/")
 print("Reading GFF and transforming to Granges.")
 gff_file <- rtracklayer::import.gff(opt$file)
 
-
 # Reduce the GFF
 print("Reducing ranges.")
 gff_reduced <- GenomicRanges::reduce(gff_file )
