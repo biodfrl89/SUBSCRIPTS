@@ -68,7 +68,8 @@ hmmer_tbl_to_gff.py --file [FILE]
 <!---REDUCE REDUNDANCY FROM MATCHES IN THE SAME COORDINATES-->
 
 ## gff_disambiguation.R
-This script takes the filtered exonerate files (genes or exons) and perform a reduction of the overlaping sequences in order to reduce ambiguity produced from matches located at the same coordinates. The result is one genomic range per overlapping individual ranges.
+This script takes the filtered exonerate files (genes or exons) and perform a reduction of the overlaping sequences in order to reduce 
+ambiguity produced from matches located at the same coordinates. The result is one genomic range per overlapping individual ranges.
 
 ### Syntax
 gff_disambiguation.R --file [FILE]
@@ -82,42 +83,61 @@ gff_disambiguation.R --file [FILE]
 <!---DETECT AND NAME IGHV SEGMENTS AS GENES OR PSEUDOGENES-->
 
 ## predict_ighv_by_overlaps.R
-DESCRIPTION
+This script takes two filtered files, the reduced exons and genes records from EXONERATE results. In order to detect if a V segment is a 
+has its structural exon and its signal peptide, at least two exons need to be detected in each gene record. To do this, the number of exons per gene
+is counted and every gene that has two or more exons are annotated as genes, whereas genes with one or less associated exons are annotated as
+pseudogenes. Every record is numbered in a unique fashion to give each segment a unique name. 
 
 ### Syntax
-gff_disambiguation.R --file [FILE]
+SCRIPTS/SUBSCRIPTS/predict_ighv_by_overlaps.R --query [FILE]  --subject [FILE]
 
 ### Options
 
 | Options | Description |
 | --- | --- |
-| file | The input file produced by blast with output format 6 (tabular). |
+| query | The reduced gff file from filtered exon annotated records from EXONERATE |
+| subject | The reduced gff file from filtered gene annotated records from EXONERATE |
 
 <!---DETECT RSS NEAR TO V AND J SEGMENTS. 
 CORRECT COORDINATES.-->
 
 ## locate_nearby_rss.R
-DESCRIPTION
+This script detect which RSS is locate nearby each V/J segment. This is achieved by increasing the coordinates of RSS segments
+in both the start and the end of the match, in order to try to make an artificial overlap with the nearby V/J segment
 
 ### Syntax
-gff_disambiguation.R --file [FILE]
+locate_nearby_rss.R -n [FILE] -t [FILE] -v [FILE] -r [INT] -m [STRING] 
 
 ### Options
 
 | Options | Description |
 | --- | --- |
-| file | The input file produced by blast with output format 6 (tabular). |
+| n | The HMMER gff file |
+| t | The HMMER tbl file |
+| v | The overlap gff file prediction containing the names of genes and pseudogenes |
+| r | The number of positions to increase in both sides of the HMMER matches, in which to detect possible overlaps with the V segments |
+| m | Mode. Depends on the input files. One of the followings: [V_segments/J_segments] |
 
 <!---PREDICT THE LOCATION OF TRUE D SEGMENTS-->
 
 ## predict_ighd_by_rss.R
-DESCRIPTION
+This script detects the probable location of true D segments. To do this, the reasoning was that true D segments would by flanked by D RSS signal
+in both 5' and 3' ends. Every genomic region comprising both ends that have less tha 50 bp lenght is considered as a potential true D segment.
 
 ### Syntax
-gff_disambiguation.R --file [FILE]
+predict_ighd_by_rss.R -f [FILE] -t [FILE]
 
 ### Options
 
 | Options | Description |
 | --- | --- |
-| file | The input file produced by blast with output format 6 (tabular). |
+| f | The HMMMER gff file produced with the 5' RSS database |
+| t | The HMMMER gff file produced with the 3' RSS database |
+
+# DEPENDENCIES
+
+## Bash
+
+## Python
+
+## R
