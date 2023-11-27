@@ -134,11 +134,15 @@ predict_ighd_by_rss.R -f [FILE] -t [FILE]
 | f | The HMMMER gff file produced with the 5' RSS database |
 | t | The HMMMER gff file produced with the 3' RSS database |
 
+# DOCKER
+The script uses many dependencies that could be annoying to install, test, and put the required locations. To prevent this, we designed a docker image in order to have 
+a clean and ready-to-use environment to perform the genomic analysis using this script.  
+
 # DEPENDENCIES
-This are all the dependencies.
+This are all the dependencies and the versions used in order to make the script to make all the analysis. Here are considered only the programs that could not be
+preinstalled in a new linux installation.
 
-## Bash
+| Programming Language | Library, package | Use in | Version | 
+| --- | --- | --- | --- |
+| Conda | --- | --- | --- |
 
-## Python
-
-## R
