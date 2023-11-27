@@ -135,6 +135,7 @@ predict_ighd_by_rss.R -f [FILE] -t [FILE]
 | t | The HMMMER gff file produced with the 3' RSS database |
 
 # DEPENDENCIES
+This are all the dependencies.
 
 ## Bash
 
