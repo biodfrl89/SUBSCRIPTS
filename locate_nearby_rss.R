@@ -173,8 +173,14 @@ if (opt$mode == "V_segments" ) {
       gff_overlaps_plus[j_subject]@ranges@width <- as.integer(v_new_width)
     }
 
-  # Select V segments with nearby RSS signals, with corrected coordinates from plus strand
-  final_plus <- c(gff_overlaps_plus[overlaps_plus@to], gff_nhmmer_plus[overlaps_plus@from])
+    # Initialice column of metadata for RSS
+    gff_nhmmer_plus$ID <- NA
+    # Fill metadata
+    if (length(gff_nhmmer_plus[overlaps_plus@from]) >= 1) gff_nhmmer_plus[overlaps_plus@from]$ID <- paste0("RSS_V-associated_", seq_along(gff_nhmmer_plus[overlaps_plus@from]))
+    if (length(gff_nhmmer_plus[which(is.na(gff_nhmmer_plus$ID))]) >= 1) gff_nhmmer_plus[which(is.na(gff_nhmmer_plus$ID))]$ID <- paste("RSS_V-non-associated_", seq_along(gff_nhmmer_plus[which(is.na(gff_nhmmer_plus$ID))]))
+    
+    # Select V segments with nearby RSS signals, with corrected coordinates from plus strand
+    final_plus <- c(gff_overlaps_plus[overlaps_plus@to], gff_nhmmer_plus[overlaps_plus@from])
   }
 
   # Checkpoint for overlaps and make analysis in minus strand
@@ -207,16 +213,19 @@ if (opt$mode == "V_segments" ) {
       gff_overlaps_minus[j_subject]@ranges@start <- as.integer(rss_real_end + 1)
     }
 
-  # Select V segments with nearby RSS signals, with corrected coordinates from minus strand
-  final_minus <- c(gff_overlaps_minus[overlaps_minus@to], gff_nhmmer_minus[overlaps_minus@from])
+    # Initialice column of metadata for RSS
+    gff_nhmmer_minus$ID <- NA
+    # Fill metadata
+    if (length(gff_nhmmer_minus[overlaps_minus@from]) >= 1) gff_nhmmer_minus[overlaps_minus@from]$ID <- paste0("RSS_J-associated_", seq_along(gff_nhmmer_minus[overlaps_minus@from]))
+    if (length(gff_nhmmer_minus[which(is.na(gff_nhmmer_minus$ID))]) >= 1) gff_nhmmer_minus[which(is.na(gff_nhmmer_minus$ID))]$ID <- paste("RSS_J-non-associated_", seq_along(gff_nhmmer_minus[which(is.na(gff_nhmmer_minus$ID))]))
+    
+    # Select V segments with nearby RSS signals, with corrected coordinates from minus strand
+    final_minus <- c(gff_overlaps_minus[overlaps_minus@to], gff_nhmmer_minus[overlaps_minus@from])
   }
 
 # Export gff with all the final data
-rtracklayer::export.gff3(c(final_minus, final_plus), "test_mixed.gff")
+rtracklayer::export.gff3(c(final_minus, final_plus), "v_rss_analysis.gff")
 }
-
-
-
 
 # J MODE  -----------------------------------------------------------------
 
