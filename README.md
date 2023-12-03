@@ -145,4 +145,8 @@ preinstalled in a new linux installation.
 | Programming Language | Library, package | Use in | Version | 
 | --- | --- | --- | --- |
 | Conda | --- | --- | --- |
+| python | pandas | --- | --- |
+| R | rtracklayer | --- | --- |
+| R | GenomicRanges | --- | --- |
+
 

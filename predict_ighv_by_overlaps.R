@@ -62,56 +62,44 @@ if (is.null(opt$subject)) {
   stop("A subject file must be submitted", call.=FALSE)
 }
 
+# REASIGMENT -----------------------------------------------
+# Gene
+subject <- opt$subject
+# Exons
+query <- opt$query
+
 # PREPARE QUERY AND SUBJECT -----------------------------------------------
 
 # Import genes
-print("Reading gene annotation by exonerate.")
-exonerate_gene_anot <- rtracklayer::import(opt$subject, format = "GFF")
-
-# Make ranges reduction
-reduced_exonerate_gene_anot <- GenomicRanges::reduce(exonerate_gene_anot)
-
-# Edit names and get the element code
-#gene_names <- sapply(exonerate_gene_anot@elementMetadata@listData$sequence, function(x) gsub('\\|.*', '', x ), USE.NAMES = FALSE)
-
-# Substitute each element with only the element code
-#manual_anotation@elementMetadata@listData$name <- gene_names 
+red_gene_anot_subj <- rtracklayer::import(subject, format = "GFF")
 
 # Import exons
-print("Reading exon annotation by exonerate.")
-exonerate_exon_anot <- rtracklayer::import(opt$query, format = "GFF")
-
-# Make ranges reduction
-reduced_exonerate_exon_anot <- GenomicRanges::reduce(exonerate_exon_anot)
+red_exon_anot_query <- rtracklayer::import(query, format = "GFF")
 
 # MAKE OVERLAPS AND FIND INDEX OF TWO OR MORE -----------------------------
 
 # Make overlaps
-overlaps <- GenomicRanges::findOverlaps(query = reduced_exonerate_gene_anot, subject = reduced_exonerate_exon_anot )
+overlaps <- GenomicRanges::findOverlaps(query = red_exon_anot_query, subject = red_gene_anot_subj )
 
 # Produce a table of number of overlaps in each query
-overlaps_table <- table(overlaps@from)
+overlaps_table <- table(overlaps@to)
 
 # Get the exonerate "genes" that have two or more overlaps with exonerate "exons"
 overlaps_two_more <- as.numeric(names(overlaps_table[overlaps_table >= 2]))
 
 # Use names to filter the desired overlaps
-overlaps_filtered <- overlaps[overlaps_two_more]
+overlaps_filtered <- overlaps[which(overlaps@to %in% overlaps_two_more)]
 
 # Convert Granges to Dataframe
 df_overlaps <- as.data.frame(overlaps_filtered)
-
-# Find the records of the overlap dataframe which subject having two or more overlaps with query
-df_overlaps_two <- df_overlaps[df_overlaps$queryHits %in% overlaps_two_more,]
-
 
 # ADD ID IN THE QUERY OBJECT (GENE) ---------------------------------------
 
 g = 1
 p = 1
 ighv_genes_detected <- c()
-for (i in 1:length(reduced_exonerate_gene_anot)) {
-  if (i %in% unique(df_overlaps_two$queryHits)) {
+for (i in seq_along(red_gene_anot_subj )) {
+  if (i %in% unique(df_overlaps$queryHits)) {
     ighv_genes_detected <- c(ighv_genes_detected, paste0("IGHV_gene_", g))
     g = g + 1
   } else {
@@ -121,34 +109,34 @@ for (i in 1:length(reduced_exonerate_gene_anot)) {
 }
 
 # Add the created names to the reduced gene anotation object
-reduced_exonerate_gene_anot$ID <- ighv_genes_detected
+red_gene_anot_subj$ID <- ighv_genes_detected
 
 # Save as gff3
-rtracklayer::export.gff3(reduced_exonerate_gene_anot, "gene_prediction.gff")
+rtracklayer::export.gff3(red_gene_anot_subj, "gene_prediction.gff")
 
 # ADD ID IN THE SUBJECT OBJECT (EXON) -------------------------------------
 
 # Begin empty ID column of metadata
-reduced_exonerate_exon_anot$ID <- NA
+red_exon_anot_query$ID <- NA
 
 # Rename the numbers in increasing way
-renamed_exons_numbers <- dplyr::dense_rank(df_overlaps_two$queryHits)
+renamed_exons_numbers <- dplyr::dense_rank(df_overlaps$queryHits)
 
-# Subset the subjectHits
-temp_df <- df_overlaps_two["subjectHits"]
+# Subset the queryHits
+temp_df <- df_overlaps["queryHits"]
 
 # Paste
 temp_df$renamed <- paste0("IGHV_exon_", renamed_exons_numbers)
 
-# Add the corresponding name of exon following the index of subjectHits
+# Add the corresponding name of exon following the index of queryHits
 cont = 1
-for (i in temp_df$subjectHits) {
-  reduced_exonerate_exon_anot[i]$ID <- temp_df$renamed[cont]
+for (i in temp_df$queryHits) {
+  red_exon_anot_query[i]$ID <- temp_df$renamed[cont]
   cont = cont + 1
 }
 
 # Any remaining with NA is renamed to Sequence
-reduced_exonerate_exon_anot[is.na(reduced_exonerate_exon_anot$ID)]$ID <- "Sequence"
+red_exon_anot_query[is.na(red_exon_anot_query$ID)]$ID <- "Sequence"
 
 # Save as gff3
-rtracklayer::export.gff3(reduced_exonerate_exon_anot, con = "exon_prediction.gff")
+rtracklayer::export.gff3(red_exon_anot_query, con = "exon_prediction.gff")
